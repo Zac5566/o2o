@@ -1,0 +1,46 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd">
+    <!--1.整合mybatis配置-->
+    <context:property-placeholder location="classpath:jdbc.properties" ignore-unresolvable="true"/>
+    <context:property-placeholder location="classpath:redis.properties" ignore-unresolvable="true"/>
+    <!--2.數據庫連接池-->
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+        <!--連接池屬性-->
+        <property name="driverClass" value="${jdbc.driver}"/>
+        <property name="jdbcUrl" value="${jdbc.url}"/>
+        <property name="user" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <!--c3p0私有屬性-->
+        <property name="maxPoolSize" value="30"/>
+        <property name="minPoolSize" value="10"/>
+        <!--關閉連結後不自動commit-->
+        <property name="autoCommitOnClose" value="false"/>
+        <!--連接超時-->
+        <property name="checkoutTimeout" value="10000"/>
+        <!--失敗重試次數-->
+        <property name="acquireRetryAttempts" value="2"/>
+    </bean>
+    <!--3.配置sqlSession-->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--注入數據庫連結池-->
+        <property name="dataSource" ref="dataSource"/>
+        <!--mybatis全局配置文件-->
+        <property name="configLocation" value="classpath:mybatis-config.xml"/>
+        <!--使用別名-->
+        <property name="typeAliasesPackage" value="com.imooc.o2o.entity"/>
+        <!--掃描sql配置的mapper文件-->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+    </bean>
+    <!--4.配置dao接口包，動態實現dao接口，注入到spring中-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--注入sqlSessionFactory-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <!--掃描的dao包-->
+        <property name="basePackage" value="com.imooc.o2o.dao"/>
+    </bean>
+</beans>

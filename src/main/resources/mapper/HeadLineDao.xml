@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imooc.o2o.dao.HeadLineDao">
+    <select id="queryHeadLine" parameterType="HeadLine" resultType="HeadLine">
+        SELECT * FROM tb_head_line
+        <where>
+            <if test="headLineCondition!=null and headLineCondition.enableStatus!=null">
+              AND enable_status = #{headLineCondition.enableStatus}
+            </if>
+        </where>
+    </select>
+</mapper>

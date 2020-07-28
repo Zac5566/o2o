@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--scanPeriod可以定期掃描logback配置是否發生變化，有變化就自動加載
+    debug=false，表示不要輸出logback組件自己的相關訊息-->
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+    <!--定義參數常量-->
+    <property name="log.level" value="debug"/>
+    <property name="log.maxHistory" value="30"/>
+    <property name="log.filePath" value="${catalina.base}/logs/webapps"/>
+    <property name="log.pattern"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n" />
+    <!--控制台設置-->
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+    </appender>
+    <!--DEBUG-->
+    <appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--文件路徑-->
+        <file>${log.filePath}/debug.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件名稱-->
+            <fileNamePattern>${log.filePath}/debug/debug.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件最大保存歷史數量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <!--過濾級別-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    <!--INFO-->
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--文件路徑-->
+        <file>${log.filePath}/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件名稱-->
+            <fileNamePattern>${log.filePath}/info/info.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件最大保存歷史數量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    <!--ERROR-->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--文件路徑-->
+        <file>${log.filePath}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--文件名稱-->
+            <fileNamePattern>${log.filePath}/error/error.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--文件最大保存歷史數量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattern}</pattern>
+        </encoder>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    <!--additivity=true，logger會將其父類(root)下的appender-ref加進來
+    而且級別會是logger配置的級別(${log.level})，而不是root配置的(info)-->
+    <logger name="com.imooc.o2o" level="${log.level}" additivity="true">
+        <appender-ref ref="debugAppender"/>
+        <appender-ref ref="infoAppender"/>
+        <appender-ref ref="errorAppender"/>
+    </logger>
+    <root level="info">
+        <appender-ref ref="consoleAppender"/>
+    </root>
+</configuration>

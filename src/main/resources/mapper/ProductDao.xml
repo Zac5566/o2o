@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.4//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imooc.o2o.dao.ProductDao">
+    <resultMap id="productRM" type="Product">
+        <id property="productId" column="product_id"/>
+        <result property="productName" column="product_name"/>
+        <result property="productDesc" column="product_desc"/>
+        <result property="imgAddr" column="img_addr"/>
+        <result property="normalPrice" column="normal_price"/>
+        <result property="promotionPrice" column="promotion_price"/>
+        <result property="priority" column="priority"/>
+        <result property="createTime" column="create_time"/>
+        <result property="lastEditTime" column="last_edit_time"/>
+        <result property="enableStatus" column="enable_status"/>
+        <result property="point" column="point"/>
+        <association property="productCategory" column="product_category_id"
+                     javaType="com.imooc.o2o.entity.ProductCategory">
+            <id property="productCategoryId" column="product_category_id"/>
+            <result property="productCategoryName" column="product_category_name"/>
+        </association>
+        <association property="shop" column="shop_id"
+                     javaType="com.imooc.o2o.entity.Shop">
+            <id property="shopId" column="shop_id"/>
+            <result column="owner_id" property="owner.userId"/>
+            <result column="shop_name" property="shopName"/>
+        </association>
+        <collection property="productImgList" column="product_id" ofType="ProductImg">
+            <id property="productImgId" column="product_img_id"/>
+            <result property="imgAddr" column="img_addr"/>
+            <result property="imgDesc" column="img_desc"/>
+            <result property="priority" column="priority"/>
+            <result property="createTime" column="create_time"/>
+            <result property="productId" column="product_id"/>
+        </collection>
+    </resultMap>
+    <insert id="insertProduct" parameterType="Product" useGeneratedKeys="true" keyProperty="productId"
+            keyColumn="product_id">
+       INSERT
+       tb_product
+       (
+       product_name,product_desc,img_addr,normal_price,promotion_price,priority
+       ,create_time,last_edit_time,enable_status,product_category_id,shop_id,point
+       )
+       VALUES(
+       #{productName},#{productDesc},#{imgAddr},#{normalPrice},#{promotionPrice},#{priority}
+       ,#{createTime},#{lastEditTime},#{enableStatus},#{productCategory.productCategoryId},#{shop.shopId}
+       ,#{point}
+       )
+   </insert>
+    <select id="queryProductById" parameterType="Long" resultMap="productRM">
+		SELECT
+		p.product_id,
+		p.product_name,
+		p.product_desc,
+		p.img_addr,
+		p.normal_price,
+		p.promotion_price,
+		p.priority,
+		p.create_time,
+		p.last_edit_time,
+		p.enable_status,
+# TODO		p.point,
+		p.product_category_id,
+		p.shop_id,
+		p.point,
+		pm.product_img_id,
+		pm.img_addr AS detail_img,
+		pm.img_desc,
+		pm.priority AS pm_priority,
+		pm.create_time
+		FROM
+		tb_product p
+		LEFT JOIN
+		tb_product_img pm
+		ON
+		p.product_id =
+		pm.product_id
+		WHERE
+		p.product_id =
+		#{productId}
+		ORDER BY
+		pm.priority DESC
+    </select>
+    <update id="updateProduct" parameterType="Product">
+        UPDATE tb_product
+        <set>
+            <if test="productName!=null">product_name = #{productName},</if>
+            <if test="productDesc!=null">product_desc = #{productDesc},</if>
+            <if test="imgAddr!=null">img_addr = #{imgAddr},</if>
+            <if test="normalPrice!=null">normal_price = #{normalPrice},</if>
+            <if test="promotionPrice!=null">promotion_price = #{promotionPrice},</if>
+            <if test="priority!=null">priority = #{priority},</if>
+            <if test="lastEditTime!=null">last_edit_time = #{lastEditTime},</if>
+            <if test="enableStatus!=null">enable_status = #{enableStatus},</if>
+            <if test="productCategory != null and productCategory.productCategoryId != null">
+                product_category_id = #{productCategory.productCategoryId},
+            </if>
+            <if test="point != null">point = #{point},</if>
+        </set>
+        WHERE
+        product_id=#{productId}
+        AND
+        shop_id=#{shop.shopId}
+    </update>
+    <select id="queryProductList" resultType="Product">
+        SELECT * FROM tb_product
+        <where>
+            <!--店鋪ID-->
+            <if test="productCondition.shop!=null and productCondition.shop.shopId!=null">
+                AND
+                shop_id = #{productCondition.shop.shopId}
+            </if>
+            <!--商品狀態-->
+            <if test="productCondition.enableStatus!=null">
+                AND
+                enable_status = #{productCondition.enableStatus}
+            </if>
+            <!--商品類別-->
+            <if test="productCondition.productCategory!=null
+            and productCondition.productCategory.productCategoryId!=null">
+                AND
+                product_category_id = #{productCondition.productCategory.productCategoryId}
+            </if>
+            <!--商品名(模糊)-->
+            <if test="productCondition.productName!=null">
+                AND
+                product_name LIKE "%"#{productCondition.productName}"%"
+            </if>
+        </where>
+        ORDER BY priority DESC
+        LIMIT #{rowIndex},#{pageSize}
+    </select>
+    <select id="quertProductCount" resultType="int">
+        SELECT COUNT(1) FROM tb_product
+        <where>
+            <!--店鋪ID-->
+            <if test="productCondition.shop!=null and productCondition.shop.shopId!=null">
+                AND
+                shop_id = #{productCondition.shop.shopId}
+            </if>
+            <!--商品狀態-->
+            <if test="productCondition.enableStatus!=null">
+                AND
+                enable_status = #{productCondition.enableStatus}
+            </if>
+            <!--商品類別-->
+            <if test="productCondition.productCategory!=null
+            and productCondition.productCategory.productCategoryId!=null">
+                AND
+                product_category_id = #{productCondition.productCategory.productCategoryId}
+            </if>
+            <!--商品名(模糊)-->
+            <if test="productCondition.productName!=null">
+                AND
+                product_name LIKE "%"#{productCondition.productName}"%"
+            </if>
+        </where>
+    </select>
+    <update id="updateProdudctCategoryToNull" parameterType="Long">
+        UPDATE tb_product SET product_category_id = NULL
+        WHERE product_category_id = #{productCategoryId}
+    </update>
+</mapper>
